@@ -1,3 +1,4 @@
+import 'package:flovoo_chat_app_task/core/theme/cubit/theme_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_bloc.dart';
@@ -12,40 +13,52 @@ class ConversationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () => context.read<ThemeCubit>().toggleTheme(context),
+            icon: BlocBuilder<ThemeCubit, ThemeMode>(
+              builder: (context, state) {
+                return Icon(
+                  state == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                  color: state == ThemeMode.dark ? Colors.white : Colors.black,
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: BlocBuilder<ConversationsBloc, ConversationsState>(
         builder: (context, state) {
           return switch (state) {
             ConversationsInitial() || ConversationsLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             ConversationsError(:final message) => _ErrorView(
-                message: message,
-                onRetry: () {
-                  context
-                      .read<ConversationsBloc>()
-                      .add(const LoadConversations());
-                },
-              ),
+              message: message,
+              onRetry: () {
+                context.read<ConversationsBloc>().add(
+                  const LoadConversations(),
+                );
+              },
+            ),
             ConversationsLoaded(:final conversations) =>
               conversations.isEmpty
                   ? const _EmptyView()
                   : RefreshIndicator(
                       onRefresh: () async {
-                        context
-                            .read<ConversationsBloc>()
-                            .add(const RefreshConversations());
+                        context.read<ConversationsBloc>().add(
+                          const RefreshConversations(),
+                        );
                       },
                       child: ListView.separated(
                         itemCount: conversations.length,
-                        separatorBuilder: (context, index) => const Divider(
-                          height: 1,
-                          indent: 72,
-                        ),
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1, indent: 72),
                         itemBuilder: (context, index) {
                           final conversation = conversations[index];
                           return ConversationTile(
