@@ -4,10 +4,16 @@ final class SearchMessageState extends Equatable {
   final SearchMessagesStateEnum state;
   final List<Message>? messagesList;
   final String? errorMessage;
-  const SearchMessageState(this.state, {this.messagesList,this.errorMessage});
+  const SearchMessageState(this.state, {this.messagesList, this.errorMessage});
 
   @override
-  List<Object?> get props => [state, messagesList];
+  List<Object?> get props => [state, messagesList, errorMessage];
 }
 
-enum SearchMessagesStateEnum { gotMessages, error, noMessages, initial }
+enum SearchMessagesStateEnum {
+  gotMessages,
+  error,
+  noMessages,
+  initial,
+  loading,
+}

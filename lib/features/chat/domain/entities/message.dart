@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-final class Message extends Equatable {
+ class Message extends Equatable {
   final String id;
   final String conversationId;
   final String text;

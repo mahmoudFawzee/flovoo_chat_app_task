@@ -121,9 +121,9 @@ final class MockChatDataSource implements ChatDataSource {
     final messagesFound = _messages.where((message) {
       if (conversationId != null) {
         return message.conversationId == conversationId &&
-            message.text.contains(query);
+            message.text.toLowerCase().contains(query.toLowerCase());
       }
-      return message.text.contains(query);
+      return message.text.toLowerCase().contains(query.toLowerCase());
     }).toList();
     return messagesFound;
   }
