@@ -1,3 +1,4 @@
+import 'package:flovoo_chat_app_task/features/chat/domain/entities/conversation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'conversation_model.g.dart';
@@ -21,4 +22,11 @@ class ConversationModel {
       _$ConversationModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$ConversationModelToJson(this);
+  Conversation toEntity() => Conversation(
+    id: id,
+    contactName: contactName,
+    lastMessage: lastMessage,
+    lastMessageTime: lastMessageTime,
+    unreadCount: unreadCount,
+  );
 }

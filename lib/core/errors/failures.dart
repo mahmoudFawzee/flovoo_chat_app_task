@@ -23,3 +23,7 @@ class RequestFailure extends Failure {
 class NetworkFailure extends Failure {
   const NetworkFailure(String? m) : super(m ?? 'No Internet Connection');
 }
+
+class SocketFailure extends Failure {
+  const SocketFailure(String? m) : super(m ?? 'Connection Lost');
+}

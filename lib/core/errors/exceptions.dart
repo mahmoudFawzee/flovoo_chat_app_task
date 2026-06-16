@@ -17,3 +17,8 @@ final class RequestException implements Exception {
   final String message;
   const RequestException(this.message);
 }
+
+final class SocketException implements Exception {
+  final String message;
+  const SocketException(this.message);
+}

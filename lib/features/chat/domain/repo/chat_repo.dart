@@ -10,5 +10,5 @@ abstract class ChatRepository {
 
   Future<Either<Failure, void>> sendMessage(Message message);
 
-  Stream<Message> incomingMessages();
+  Either<Failure, Stream<Message>> incomingMessages();
 }
