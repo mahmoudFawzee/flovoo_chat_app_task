@@ -86,7 +86,7 @@ class MessageStatusIcon extends StatelessWidget {
     final color = Theme.of(
       context,
     ).colorScheme.onPrimary.withValues(alpha: 0.7);
-    final size = 14.0;
+    const size = 14.0;
 
     switch (message.status) {
       case MessageStatus.sending:

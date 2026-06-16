@@ -1,28 +1,30 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
-
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
-linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
-  rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+analyzer:
+  # Elevate critical performance hints to hard warnings so they stand out
+  errors:
+    prefer_const_constructors: warning
+    prefer_const_declarations: warning
+    unnecessary_const: warning
+    avoid_unnecessary_containers: warning
+    sized_box_for_whitespace: warning
+    use_build_context_synchronously: error # Critical async performance/safety issue
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    # --- 🏎️ CORE PERFORMANCE HINTS ---
+    - prefer_const_constructors # Caches widgets at compile time; drastically cuts down runtime rebuild overhead.
+    - prefer_const_declarations # Allocates memory exactly once for unchanging local evaluations.
+    - prefer_const_constructors_in_immutables # Enforces const down the entire custom widget hierarchy tree.
+    - prefer_const_literals_to_create_immutables # Auto-optimizes unchanging arrays inside Column or Row children blocks.
+
+    # --- 🌳 WIDGET TREE CLEANUP (Reduces layout rendering passes) ---
+    - avoid_unnecessary_containers # Prevents wasteful layout padding math by using simpler alternatives.
+    - sized_box_for_whitespace # Replaces heavy Container() components with lightweight spacing layouts.
+    - prefer_iterable_whereType # Optimizes list-parsing logic loops for much higher dataset filtering speeds.
+
+    # --- 🧠 ASYNC & MEMORY LEAK PREVENTION ---
+    - use_build_context_synchronously # Blocks unmounted context references, saving your application from framework crashes.
+    - cancel_subscriptions # Triggers compilation warning alerts if a StreamSubscription is left hanging in memory.
+    - close_sinks # Explicitly flags network sockets or data sinks that have not been safely closed.
+    - avoid_print # Disables logging evaluations that slow down thread operations on live user devices.
