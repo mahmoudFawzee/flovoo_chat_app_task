@@ -14,21 +14,21 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Either<Failure, List<Conversation>>> getConversations() =>
-      exceptionWrapper(() async {
+      futureExceptionWrapper(() async {
         final data = await dataSource.getConversations();
         return data.map((item) => item.toEntity()).toList();
       });
 
   @override
   Future<Either<Failure, List<Message>>> getMessages(String conversationId) =>
-      exceptionWrapper(() async {
+      futureExceptionWrapper(() async {
         final data = await dataSource.getMessages(conversationId);
         return data.map((item) => item.toEntity()).toList();
       });
 
   @override
   Future<Either<Failure, void>> sendMessage(Message message) =>
-      exceptionWrapper(() async {
+      futureExceptionWrapper(() async {
         return dataSource.sendMessage(MessageModel.fromEntity(message));
       });
 
@@ -45,7 +45,18 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Either<Failure, void>> setActiveConversation(String? conversationId) =>
-      exceptionWrapper(() async {
+      futureExceptionWrapper(() async {
         return dataSource.setActiveConversation(conversationId);
       });
+
+  @override
+  Either<Failure, List<Message>> searchMessage(
+    String query, {
+    String? conversationId,
+  }) => exceptionWrapper(() {
+    return dataSource
+        .searchMessage(query, conversationId: conversationId)
+        .map((item) => item.toEntity())
+        .toList();
+  });
 }

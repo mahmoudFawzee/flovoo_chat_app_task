@@ -9,7 +9,10 @@ abstract class ChatRepository {
   Future<Either<Failure, List<Message>>> getMessages(String conversationId);
 
   Future<Either<Failure, void>> sendMessage(Message message);
-
+  Either<Failure, List<Message>> searchMessage(
+    String query, {
+    String? conversationId,
+  });
   Either<Failure, Stream<Message>> incomingMessages();
 
   Either<Failure, Stream<Conversation>> conversationUpdates();

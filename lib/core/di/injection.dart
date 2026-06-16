@@ -9,6 +9,7 @@ import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/send_message
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/set_active_conversation.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_bloc.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/search_message_cubit/search_message_cubit.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -23,6 +24,7 @@ void initDependencies() {
   // ── Use Cases ──
   sl.registerLazySingleton(() => GetConversations(sl()));
   sl.registerLazySingleton(() => GetMessages(sl()));
+  sl.registerLazySingleton(() => SearchMessageCubit(sl()));
   sl.registerLazySingleton(() => SendMessage(sl()));
   sl.registerLazySingleton(() => ListenForMessages(sl()));
   sl.registerLazySingleton(() => ListenForConversationUpdates(sl()));
@@ -43,4 +45,5 @@ void initDependencies() {
       setActiveConversation: sl(),
     ),
   );
+  sl.registerFactory(() => SearchMessageCubit(sl()));
 }

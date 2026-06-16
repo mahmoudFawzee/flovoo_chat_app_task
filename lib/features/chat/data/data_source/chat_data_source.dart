@@ -7,6 +7,7 @@ abstract class ChatDataSource {
   Future<List<ConversationModel>> getConversations();
 
   Future<List<MessageModel>> getMessages(String conversationId);
+  List<MessageModel> searchMessage(String query, {String? conversationId});
 
   Future<void> sendMessage(MessageModel message);
 
@@ -30,6 +31,162 @@ final class MockChatDataSource implements ChatDataSource {
     _seedData();
   }
 
+  @override
+  Future<List<ConversationModel>> getConversations() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    // Return sorted by latest message first
+    final sorted = List<ConversationModel>.from(_conversations)
+      ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+    return sorted;
+  }
+
+  @override
+  Future<List<MessageModel>> getMessages(String conversationId) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final filtered =
+        _messages
+            .where((message) => message.conversationId == conversationId)
+            .toList()
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return filtered;
+  }
+
+  @override
+  Stream<MessageModel> incomingMessages() {
+    return _messageController.stream;
+  }
+
+  @override
+  Stream<ConversationModel> conversationUpdates() {
+    return _conversationController.stream;
+  }
+
+  @override
+  Future<void> setActiveConversation(String? conversationId) async {
+    _activeConversationId = conversationId;
+    if (conversationId != null) {
+      _markConversationAsRead(conversationId);
+    }
+  }
+
+  void _markConversationAsRead(String conversationId) {
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1) {
+      final existing = _conversations[index];
+      if (existing.unreadCount > 0) {
+        final updated = ConversationModel(
+          id: existing.id,
+          contactName: existing.contactName,
+          lastMessage: existing.lastMessage,
+          lastMessageTime: existing.lastMessageTime,
+          unreadCount: 0,
+        );
+        _conversations[index] = updated;
+        _conversationController.add(updated);
+      }
+    }
+  }
+
+  @override
+  Future<void> sendMessage(MessageModel message) async {
+    // 1. Add message immediately with its initial status (sending)
+    _messages.add(message);
+
+    // 2. Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // 3. Update status to sent
+    _updateMessageStatus(message.id, MessageStatusModel.sent);
+
+    // Update conversation preview
+    _updateConversationPreview(
+      conversationId: message.conversationId,
+      lastMessage: message.text,
+      lastMessageTime: message.timestamp,
+      incrementUnread: false,
+    );
+
+    // 4. Simulate delivered after 500ms
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _updateMessageStatus(message.id, MessageStatusModel.delivered);
+    });
+
+    // Simulate auto-reply after sending
+    _simulateReply(message.conversationId);
+  }
+
+  @override
+  List<MessageModel> searchMessage(String query, {String? conversationId}) {
+    final messagesFound = _messages.where((message) {
+      if (conversationId != null) {
+        return message.conversationId == conversationId &&
+            message.text.contains(query);
+      }
+      return message.text.contains(query);
+    }).toList();
+    return messagesFound;
+  }
+
+  void _updateMessageStatus(String messageId, MessageStatusModel status) {
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      final existing = _messages[index];
+      _messages[index] = existing.copyWith(status: status);
+    }
+  }
+
+  void _updateConversationPreview({
+    required String conversationId,
+    required String lastMessage,
+    required DateTime lastMessageTime,
+    required bool incrementUnread,
+  }) {
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1) {
+      final existing = _conversations[index];
+      final updated = ConversationModel(
+        id: existing.id,
+        contactName: existing.contactName,
+        lastMessage: lastMessage,
+        lastMessageTime: lastMessageTime,
+        unreadCount: incrementUnread ? existing.unreadCount + 1 : 0,
+      );
+      _conversations[index] = updated;
+      _conversationController.add(updated);
+    }
+  }
+
+  Future<void> _simulateReply(String conversationId) async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    final contactName = _conversations
+        .firstWhere((c) => c.id == conversationId)
+        .contactName;
+
+    final reply = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      conversationId: conversationId,
+      text: 'Reply from $contactName 👋',
+      isMe: false,
+      timestamp: DateTime.now(),
+      status: MessageStatusModel.delivered,
+    );
+
+    _messages.add(reply);
+    _messageController.add(reply);
+
+    // Update conversation preview for the reply
+    final isActive = conversationId == _activeConversationId;
+    _updateConversationPreview(
+      conversationId: conversationId,
+      lastMessage: reply.text,
+      lastMessageTime: reply.timestamp,
+      incrementUnread: !isActive,
+    );
+  }
+
+  //***********************************seed data for mocking ***********************************
   void _seedData() {
     final now = DateTime.now();
 
@@ -216,148 +373,5 @@ final class MockChatDataSource implements ChatDataSource {
         status: MessageStatusModel.delivered,
       ),
     ]);
-  }
-
-  @override
-  Future<List<ConversationModel>> getConversations() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // Return sorted by latest message first
-    final sorted = List<ConversationModel>.from(_conversations)
-      ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-    return sorted;
-  }
-
-  @override
-  Future<List<MessageModel>> getMessages(String conversationId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final filtered =
-        _messages
-            .where((message) => message.conversationId == conversationId)
-            .toList()
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    return filtered;
-  }
-
-  @override
-  Stream<MessageModel> incomingMessages() {
-    return _messageController.stream;
-  }
-
-  @override
-  Stream<ConversationModel> conversationUpdates() {
-    return _conversationController.stream;
-  }
-
-  @override
-  Future<void> setActiveConversation(String? conversationId) async {
-    _activeConversationId = conversationId;
-    if (conversationId != null) {
-      _markConversationAsRead(conversationId);
-    }
-  }
-
-  void _markConversationAsRead(String conversationId) {
-    final index = _conversations.indexWhere((c) => c.id == conversationId);
-    if (index != -1) {
-      final existing = _conversations[index];
-      if (existing.unreadCount > 0) {
-        final updated = ConversationModel(
-          id: existing.id,
-          contactName: existing.contactName,
-          lastMessage: existing.lastMessage,
-          lastMessageTime: existing.lastMessageTime,
-          unreadCount: 0,
-        );
-        _conversations[index] = updated;
-        _conversationController.add(updated);
-      }
-    }
-  }
-
-  @override
-  Future<void> sendMessage(MessageModel message) async {
-    // 1. Add message immediately with its initial status (sending)
-    _messages.add(message);
-
-    // 2. Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // 3. Update status to sent
-    _updateMessageStatus(message.id, MessageStatusModel.sent);
-
-    // Update conversation preview
-    _updateConversationPreview(
-      conversationId: message.conversationId,
-      lastMessage: message.text,
-      lastMessageTime: message.timestamp,
-      incrementUnread: false,
-    );
-
-    // 4. Simulate delivered after 500ms
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _updateMessageStatus(message.id, MessageStatusModel.delivered);
-    });
-
-    // Simulate auto-reply after sending
-    _simulateReply(message.conversationId);
-  }
-
-  void _updateMessageStatus(String messageId, MessageStatusModel status) {
-    final index = _messages.indexWhere((m) => m.id == messageId);
-    if (index != -1) {
-      final existing = _messages[index];
-      _messages[index] = existing.copyWith(status: status);
-    }
-  }
-
-  void _updateConversationPreview({
-    required String conversationId,
-    required String lastMessage,
-    required DateTime lastMessageTime,
-    required bool incrementUnread,
-  }) {
-    final index = _conversations.indexWhere((c) => c.id == conversationId);
-    if (index != -1) {
-      final existing = _conversations[index];
-      final updated = ConversationModel(
-        id: existing.id,
-        contactName: existing.contactName,
-        lastMessage: lastMessage,
-        lastMessageTime: lastMessageTime,
-        unreadCount: incrementUnread ? existing.unreadCount + 1 : 0,
-      );
-      _conversations[index] = updated;
-      _conversationController.add(updated);
-    }
-  }
-
-  Future<void> _simulateReply(String conversationId) async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    final contactName = _conversations
-        .firstWhere((c) => c.id == conversationId)
-        .contactName;
-
-    final reply = MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      conversationId: conversationId,
-      text: 'Reply from $contactName 👋',
-      isMe: false,
-      timestamp: DateTime.now(),
-      status: MessageStatusModel.delivered,
-    );
-
-    _messages.add(reply);
-    _messageController.add(reply);
-
-    // Update conversation preview for the reply
-    final isActive = conversationId == _activeConversationId;
-    _updateConversationPreview(
-      conversationId: conversationId,
-      lastMessage: reply.text,
-      lastMessageTime: reply.timestamp,
-      incrementUnread: !isActive,
-    );
   }
 }
