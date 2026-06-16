@@ -32,5 +32,11 @@ final class Conversation extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, contactName, lastMessage, lastMessageTime, unreadCount];
+  List<Object?> get props => [
+    id,
+    contactName,
+    lastMessage,
+    lastMessageTime,
+    unreadCount,
+  ];
 }

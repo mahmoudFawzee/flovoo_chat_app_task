@@ -1,3 +1,5 @@
+import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_bloc.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flovoo_chat_app_task/core/di/injection.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_bloc.dart';
@@ -11,7 +13,11 @@ class AppRouter {
     routes: [
       GoRoute(
         path: ConversationsScreen.pageRoute,
-        builder: (context, state) => const ConversationsScreen(),
+        builder: (context, state) => BlocProvider(
+          create: (_) =>
+              sl<ConversationsBloc>()..add(const LoadConversations()),
+          child: const ConversationsScreen(),
+        ),
       ),
       GoRoute(
         path: '/chat/:conversationId',
