@@ -13,4 +13,6 @@ abstract class ChatRepository {
   Either<Failure, Stream<Message>> incomingMessages();
 
   Either<Failure, Stream<Conversation>> conversationUpdates();
+
+  Future<Either<Failure, void>> setActiveConversation(String? conversationId);
 }

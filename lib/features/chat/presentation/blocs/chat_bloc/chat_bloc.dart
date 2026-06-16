@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/entities/message.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/get_messages.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/listen_for_messages.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/send_message.dart';
+import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/set_active_conversation.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_event.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_state.dart';
 import 'package:uuid/uuid.dart';
@@ -14,6 +13,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final GetMessages getMessages;
   final SendMessage sendMessage;
   final ListenForMessages listenForMessages;
+  final SetActiveConversation setActiveConversation;
 
   StreamSubscription<Message>? _messageSubscription;
   String? _currentConversationId;
@@ -22,6 +22,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     required this.getMessages,
     required this.sendMessage,
     required this.listenForMessages,
+    required this.setActiveConversation,
   }) : super(const ChatInitial()) {
     on<LoadMessages>(_onLoadMessages);
     on<SendMessageRequested>(_onSendMessage);
@@ -68,6 +69,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) async {
     _currentConversationId = event.conversationId;
+    await setActiveConversation(event.conversationId);
 
     if (emit.isDone) return;
     emit(const ChatLoading());
@@ -76,10 +78,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (emit.isDone) return;
 
     result.fold((failure) => emit(ChatError(failure.message)), (messages) {
-      log(
-        'message: ${messages.where((item) => item.status == MessageStatus.sending).toList().length}',
-      );
-
       emit(ChatLoaded(messages));
       // Subscribe to incoming messages after initial load
       _subscribeToIncomingMessages();
@@ -156,6 +154,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   @override
   Future<void> close() {
     _messageSubscription?.cancel();
+    setActiveConversation(null);
     return super.close();
   }
 }

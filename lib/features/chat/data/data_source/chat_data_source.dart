@@ -13,6 +13,8 @@ abstract class ChatDataSource {
   Stream<MessageModel> incomingMessages();
 
   Stream<ConversationModel> conversationUpdates();
+
+  Future<void> setActiveConversation(String? conversationId);
 }
 
 final class MockChatDataSource implements ChatDataSource {
@@ -21,6 +23,8 @@ final class MockChatDataSource implements ChatDataSource {
   final _messageController = StreamController<MessageModel>.broadcast();
   final _conversationController =
       StreamController<ConversationModel>.broadcast();
+
+  String? _activeConversationId;
 
   MockChatDataSource() {
     _seedData();
@@ -246,6 +250,32 @@ final class MockChatDataSource implements ChatDataSource {
   }
 
   @override
+  Future<void> setActiveConversation(String? conversationId) async {
+    _activeConversationId = conversationId;
+    if (conversationId != null) {
+      _markConversationAsRead(conversationId);
+    }
+  }
+
+  void _markConversationAsRead(String conversationId) {
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1) {
+      final existing = _conversations[index];
+      if (existing.unreadCount > 0) {
+        final updated = ConversationModel(
+          id: existing.id,
+          contactName: existing.contactName,
+          lastMessage: existing.lastMessage,
+          lastMessageTime: existing.lastMessageTime,
+          unreadCount: 0,
+        );
+        _conversations[index] = updated;
+        _conversationController.add(updated);
+      }
+    }
+  }
+
+  @override
   Future<void> sendMessage(MessageModel message) async {
     // 1. Add message immediately with its initial status (sending)
     _messages.add(message);
@@ -322,11 +352,12 @@ final class MockChatDataSource implements ChatDataSource {
     _messageController.add(reply);
 
     // Update conversation preview for the reply
+    final isActive = conversationId == _activeConversationId;
     _updateConversationPreview(
       conversationId: conversationId,
       lastMessage: reply.text,
       lastMessageTime: reply.timestamp,
-      incrementUnread: true,
+      incrementUnread: !isActive,
     );
   }
 }

@@ -40,7 +40,12 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Either<Failure, Stream<Conversation>> conversationUpdates() =>
       streamExceptionWrapper(
-        () =>
-            dataSource.conversationUpdates().map((item) => item.toEntity()),
+        () => dataSource.conversationUpdates().map((item) => item.toEntity()),
       );
+
+  @override
+  Future<Either<Failure, void>> setActiveConversation(String? conversationId) =>
+      exceptionWrapper(() async {
+        return dataSource.setActiveConversation(conversationId);
+      });
 }

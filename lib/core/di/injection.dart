@@ -6,6 +6,7 @@ import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/get_messages
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/listen_for_conversation_updates.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/listen_for_messages.dart';
 import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/send_message.dart';
+import 'package:flovoo_chat_app_task/features/chat/domain/use_cases/set_active_conversation.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -25,6 +26,7 @@ void initDependencies() {
   sl.registerLazySingleton(() => SendMessage(sl()));
   sl.registerLazySingleton(() => ListenForMessages(sl()));
   sl.registerLazySingleton(() => ListenForConversationUpdates(sl()));
+  sl.registerLazySingleton(() => SetActiveConversation(sl()));
 
   // ── Blocs ──
   sl.registerFactory(
@@ -38,6 +40,7 @@ void initDependencies() {
       getMessages: sl(),
       sendMessage: sl(),
       listenForMessages: sl(),
+      setActiveConversation: sl(),
     ),
   );
 }
