@@ -40,22 +40,39 @@ class MessageModel {
     timestamp: timestamp,
     status: status.toEntity,
   );
+
+  MessageModel copyWith({
+    String? id,
+    String? conversationId,
+    String? text,
+    bool? isMe,
+    DateTime? timestamp,
+    MessageStatusModel? status,
+  }) {
+    return MessageModel(
+      id: id ?? this.id,
+      conversationId: conversationId ?? this.conversationId,
+      text: text ?? this.text,
+      isMe: isMe ?? this.isMe,
+      timestamp: timestamp ?? this.timestamp,
+      status: status ?? this.status,
+    );
+  }
 }
 
-enum MessageStatusModel { sending, sent, delivered, read }
+enum MessageStatusModel { sending, sent, delivered, failed }
 
 extension ToEntity on MessageStatusModel {
   MessageStatus get toEntity {
     switch (this) {
       case MessageStatusModel.delivered:
         return MessageStatus.delivered;
-
       case MessageStatusModel.sending:
         return MessageStatus.sending;
       case MessageStatusModel.sent:
         return MessageStatus.sent;
-      case MessageStatusModel.read:
-        return MessageStatus.read;
+      case MessageStatusModel.failed:
+        return MessageStatus.failed;
     }
   }
 }
@@ -68,7 +85,7 @@ MessageStatusModel _messageStatusFromEntity(MessageStatus status) {
       return MessageStatusModel.sending;
     case MessageStatus.sent:
       return MessageStatusModel.sent;
-    case MessageStatus.read:
-      return MessageStatusModel.read;
+    case MessageStatus.failed:
+      return MessageStatusModel.failed;
   }
 }

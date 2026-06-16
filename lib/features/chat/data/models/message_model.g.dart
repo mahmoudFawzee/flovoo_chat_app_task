@@ -29,5 +29,5 @@ const _$MessageStatusModelEnumMap = {
   MessageStatusModel.sending: 'sending',
   MessageStatusModel.sent: 'sent',
   MessageStatusModel.delivered: 'delivered',
-  MessageStatusModel.read: 'read',
+  MessageStatusModel.failed: 'failed',
 };
