@@ -36,4 +36,11 @@ class ChatRepositoryImpl implements ChatRepository {
   Either<Failure, Stream<Message>> incomingMessages() => streamExceptionWrapper(
     () => dataSource.incomingMessages().map((item) => item.toEntity()),
   );
+
+  @override
+  Either<Failure, Stream<Conversation>> conversationUpdates() =>
+      streamExceptionWrapper(
+        () =>
+            dataSource.conversationUpdates().map((item) => item.toEntity()),
+      );
 }
