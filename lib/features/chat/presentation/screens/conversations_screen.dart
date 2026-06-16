@@ -1,4 +1,10 @@
+import 'package:flovoo_chat_app_task/core/router/routes.dart';
 import 'package:flovoo_chat_app_task/core/theme/cubit/theme_cubit.dart';
+import 'package:flovoo_chat_app_task/features/chat/domain/entities/message.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/helpers/search_arguments.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/widget/app_bar_icon_button.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/widget/conversation_error_view.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/widget/conversations_empty.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/conversations_bloc/conversations_bloc.dart';
@@ -13,13 +19,26 @@ class ConversationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
         centerTitle: true,
         actions: [
-          IconButton(
+          AppBarIconButton(
+            onPressed: () async {
+              final message = await context.push<Message>(
+                Routes.searchMessages,
+              );
+              if (message != null && context.mounted) {
+                context.push(
+                  Routes.chat,
+                  extra: ChatArguments(conversationId: message.conversationId),
+                );
+              }
+            },
+            icon: const Icon(Icons.search),
+          ),
+          AppBarIconButton(
             onPressed: () => context.read<ThemeCubit>().toggleTheme(context),
             icon: BlocBuilder<ThemeCubit, ThemeMode>(
               builder: (context, state) {
@@ -38,7 +57,7 @@ class ConversationsScreen extends StatelessWidget {
             ConversationsInitial() || ConversationsLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
-            ConversationsError(:final message) => _ErrorView(
+            ConversationsError(:final message) => ErrorView(
               message: message,
               onRetry: () {
                 context.read<ConversationsBloc>().add(
@@ -48,7 +67,7 @@ class ConversationsScreen extends StatelessWidget {
             ),
             ConversationsLoaded(:final conversations) =>
               conversations.isEmpty
-                  ? const _EmptyView()
+                  ? const EmptyView()
                   : RefreshIndicator(
                       onRefresh: () async {
                         context.read<ConversationsBloc>().add(
@@ -72,75 +91,6 @@ class ConversationsScreen extends StatelessWidget {
                     ),
           };
         },
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline_rounded,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No conversations yet',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 56,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
       ),
     );
   }

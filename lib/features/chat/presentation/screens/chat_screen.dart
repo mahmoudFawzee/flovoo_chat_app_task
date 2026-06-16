@@ -1,3 +1,7 @@
+import 'package:flovoo_chat_app_task/core/router/routes.dart';
+import 'package:flovoo_chat_app_task/features/chat/domain/entities/message.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/helpers/search_arguments.dart';
+import 'package:flovoo_chat_app_task/features/chat/presentation/widget/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_bloc.dart';
@@ -5,10 +9,10 @@ import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/
 import 'package:flovoo_chat_app_task/features/chat/presentation/blocs/chat_bloc/chat_state.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/widget/chat_input.dart';
 import 'package:flovoo_chat_app_task/features/chat/presentation/widget/message_bubble.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
-
   const ChatScreen({super.key, required this.conversationId});
   static const pageRoute = '/chat/:conversationId';
 
@@ -18,7 +22,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
@@ -46,7 +49,24 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: const Text('Chat'),
+        actions: [
+          AppBarIconButton(
+            onPressed: () async {
+              final message = await context.push<Message>(
+                Routes.searchMessages,
+                extra: SearchArguments(conversationId: widget.conversationId),
+              );
+
+              if (!mounted || message == null) {
+                return;
+              }
+            },
+            icon: const Icon(Icons.search),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Message list
