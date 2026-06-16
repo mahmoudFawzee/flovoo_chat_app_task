@@ -177,6 +177,78 @@ This behavior closely resembles a real messaging application.
 
 ---
 
+## Additional Features
+
+### Theme Support (Light & Dark Mode)
+
+The application supports both Light Mode and Dark Mode.
+
+Features:
+
+- System theme detection
+- Consistent color scheme across screens
+- Proper theming for:
+  - Conversation list
+  - Chat screen
+  - Search screens
+  - Message bubbles
+  - App bars
+  - Input fields
+
+The UI automatically adapts to the selected theme, providing a better user experience and accessibility.
+
+---
+
+### Message Search
+
+The application includes a message search feature implemented using a dedicated `SearchMessageCubit`.
+
+#### Global Search (Conversation Scope)
+
+Users can search across all messages in all conversations.
+
+Features:
+
+- Search by message content
+- Displays matching messages with conversation information
+- Navigate directly to the corresponding conversation
+- Automatically opens the correct chat
+
+#### Conversation Search (Chat Scope)
+
+Users can search within the currently opened conversation.
+
+Features:
+
+- Search only messages belonging to the active conversation
+- Displays all matching messages
+
+---
+
+## Search Architecture
+
+The search feature follows the existing Clean Architecture structure.
+
+### Data Layer
+
+Provides message search functionality through the datasource and repository implementations.
+
+### Domain Layer
+
+Contains the `SearchMessagesUseCase`, which encapsulates the search business logic.
+
+### Presentation Layer
+
+Uses a dedicated `SearchMessageCubit` responsible for:
+
+- Executing searches
+- Managing search states
+- Delivering search results to the UI
+
+This keeps search-related responsibilities isolated from both `ChatBloc` and `ConversationsBloc`.
+
+---
+
 ## Technologies Used
 
 - Flutter
