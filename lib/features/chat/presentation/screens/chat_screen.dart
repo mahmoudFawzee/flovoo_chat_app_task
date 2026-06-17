@@ -128,8 +128,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             controller: _scrollController,
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             itemCount: messages.length,
+                            reverse: true,
                             itemBuilder: (context, index) {
-                              return MessageBubble(message: messages[index]);
+                              return MessageBubble(
+                                message: messages.reversed.toList()[index],
+                              );
                             },
                           ),
                 };
